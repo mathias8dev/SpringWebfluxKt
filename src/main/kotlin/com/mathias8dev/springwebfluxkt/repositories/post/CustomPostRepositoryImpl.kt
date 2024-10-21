@@ -101,11 +101,8 @@ class CustomPostRepositoryImpl(
         filterCriteria: List<FilterCriteria>,
         filterMode: FilterMode
     ): Page<PostResponseDto> = coroutineScope {
-        val orderByClause = pageable.sort.joinToString(", ") {
-            "${if (it.property == "id") "post_id" else it.property.camelToSnakeCase()} ${if (it.isAscending) "ASC" else "DESC"}"
-        }
 
-        // Build the WHERE clause based on filter criteria
+        val orderByClause = buildOrderByClause(pageable)
         val whereClause = buildWhereClause(filterCriteria)
 
         // Fetch the total count of posts for pagination metadata
@@ -230,5 +227,51 @@ class CustomPostRepositoryImpl(
             .awaitFirst()
     }
 
+    override suspend fun findAllByAuthorId(
+        authorId: Long,
+        pageable: Pageable,
+        filterCriteria: List<FilterCriteria>,
+        filterMode: FilterMode
+    ): Page<PostResponseDto> {
+
+        val orderByClause = buildOrderByClause(pageable)
+        val whereClause = buildWhereClause(filterCriteria)
+
+        val totalAsync = client
+            .sql("""SELECT COUNT(p.id) FROM posts p $whereClause AND p.author_id = :authorId""".trimIndent())
+            .bind("authorId", authorId)
+            .fetch()
+            .one()
+            .map { it["count"] as Long }
+
+
+        val postListAsync = client.sql(
+            """
+            SELECT p.id AS post_id, p.title, p.content, p.tags, p.created_at, p.updated_at,
+                   c.id AS category_id, c.name AS category_name,
+            FROM posts p
+            LEFT JOIN posts_categories pc ON p.id = pc.post_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            $whereClause AND p.author_id = :authorId
+            ORDER BY $orderByClause        
+            LIMIT ${pageable.pageSize} OFFSET ${pageable.offset}
+        """.trimIndent()
+        )
+            .bind("authorId", authorId)
+            .fetch()
+            .all()
+            .bufferUntilChanged { it["post_id"] as Long }
+            .flatMap(PostResponseDto::fromRows)
+            .collectList()
+
+
+        return PageImpl(postListAsync.awaitFirst(), pageable, totalAsync.awaitFirst())
+    }
+
+    private fun buildOrderByClause(pageable: Pageable): String {
+        return pageable.sort.joinToString(", ") {
+            "${if (it.property == "id") "post_id" else it.property.camelToSnakeCase()} ${if (it.isAscending) "ASC" else "DESC"}"
+        }
+    }
 
 }

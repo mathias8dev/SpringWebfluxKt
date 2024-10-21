@@ -3,6 +3,8 @@ package com.mathias8dev.springwebfluxkt.services
 import com.mathias8dev.springwebfluxkt.dtos.Sorting
 import com.mathias8dev.springwebfluxkt.dtos.post.PostRequestDto
 import com.mathias8dev.springwebfluxkt.dtos.post.PostResponseDto
+import com.mathias8dev.springwebfluxkt.dtos.user.AddPostRequestDto
+import com.mathias8dev.springwebfluxkt.filtering.FilterCriteria
 import com.mathias8dev.springwebfluxkt.filtering.FilterMode
 import com.mathias8dev.springwebfluxkt.models.Post
 import com.mathias8dev.springwebfluxkt.repositories.category.CategoryRepository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -56,17 +59,6 @@ class PostService(
 
     }
 
-    suspend fun insert(dto: PostRequestDto): Post {
-        val post = Post(
-            title = dto.title!!,
-            content = dto.content!!
-        )
-
-        dto.tags?.let { post.tags = it.joinToString(",") }
-        logger.debug("The post to be saved is $post")
-        val savedPost = postRepository.save(post)
-        return savedPost
-    }
 
     suspend fun addCategory(postId: Long, categoryId: Long) {
         findById(postId)
@@ -74,13 +66,13 @@ class PostService(
         postRepository.addCategory(postId, categoryId)
     }
 
-    suspend fun update(id: Long, dto: PostRequestDto): Post = coroutineScope {
-        val post = findById(id)
+    suspend fun update(dto: PostRequestDto): Post = coroutineScope {
+        val post = findById(dto.id!!)
         dto.title?.let { post.title = it }
         dto.content?.let { post.content = it }
         val categoryUpdateAsync = dto.categoryId?.let {
             async {
-                addCategory(id, it)
+                addCategory(dto.id, it)
             }
         }
         dto.tags?.let { newTags ->
@@ -90,5 +82,35 @@ class PostService(
         val saved = postRepository.save(post)
         categoryUpdateAsync?.await()
         saved
+    }
+
+    suspend fun add(dto: AddPostRequestDto): Post {
+        val post = Post(
+            authorId = dto.authorId,
+            title = dto.title,
+            content = dto.content
+        )
+        return postRepository.save(post)
+
+    }
+
+    suspend fun delete(id: Long): Post {
+        val post = findById(id)
+        postRepository.delete(post)
+        return post
+    }
+
+    suspend fun findAllByAuthorId(
+        authorId: Long,
+        pageable: Pageable,
+        filterCriteria: List<FilterCriteria> = emptyList(),
+        filterMode: FilterMode = FilterMode.AND
+    ): Page<PostResponseDto> {
+        return postRepository.findAllByAuthorId(
+            authorId,
+            pageable,
+            filterCriteria,
+            filterMode
+        )
     }
 }

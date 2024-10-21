@@ -25,4 +25,11 @@ interface CustomPostRepository {
     ): Page<PostResponseDto>
 
     suspend fun insert(post: Post): Post
+
+    suspend fun findAllByAuthorId(
+        authorId: Long,
+        pageable: Pageable,
+        filterCriteria: List<FilterCriteria> = emptyList(),
+        filterMode: FilterMode = FilterMode.AND
+    ): Page<PostResponseDto>
 }

@@ -46,13 +46,6 @@ class PostController(
     fun findAll() = postService.findAll()
 
 
-    @PostMapping
-    @Operation(summary = "Create a new post", description = "Insert a new post")
-    @ApiResponse(responseCode = "201", description = "Post created successfully")
-    suspend fun insert(@RequestPart("dto") dto: PostRequestDto): Post {
-        return postService.insert(dto)
-    }
-
     @PutMapping("/{id}")
     @Operation(summary = "Update a post", description = "Update an existing post by ID")
     @ApiResponses(
@@ -63,6 +56,6 @@ class PostController(
         @PathVariable id: Long,
         @RequestPart dto: PostRequestDto
     ): Post {
-        return postService.update(id, dto)
+        return postService.update(dto.copy(id = id))
     }
 }
