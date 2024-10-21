@@ -4,6 +4,9 @@ import com.mathias8dev.springwebfluxkt.dtos.post.PostRequestDto
 import com.mathias8dev.springwebfluxkt.dtos.post.PostResponseDto
 import com.mathias8dev.springwebfluxkt.models.Post
 import com.mathias8dev.springwebfluxkt.services.PostService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.springframework.data.domain.Page
 import org.springframework.web.bind.annotation.*
 
@@ -15,10 +18,12 @@ class PostController(
 ) {
 
 
-    @GetMapping
-    fun findAll() = postService.findAll()
-
     @GetMapping("/paginated")
+    @Operation(summary = "Get paginated posts", description = "Retrieve a paginated list of posts")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Successful operation"),
+        ApiResponse(responseCode = "400", description = "Invalid parameters")
+    )
     suspend fun findAllPaginated(
         @RequestParam page: Int,
         @RequestParam pageSize: Int = 20,
@@ -35,16 +40,29 @@ class PostController(
         )
     }
 
+    @GetMapping
+    @Operation(summary = "Get all posts", description = "Retrieve a list of all posts")
+    @ApiResponse(responseCode = "200", description = "Successful operation")
+    fun findAll() = postService.findAll()
+
+
+    @PostMapping
+    @Operation(summary = "Create a new post", description = "Insert a new post")
+    @ApiResponse(responseCode = "201", description = "Post created successfully")
+    suspend fun insert(@RequestPart("dto") dto: PostRequestDto): Post {
+        return postService.insert(dto)
+    }
+
     @PutMapping("/{id}")
+    @Operation(summary = "Update a post", description = "Update an existing post by ID")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Successful operation"),
+        ApiResponse(responseCode = "404", description = "Post not found")
+    )
     suspend fun update(
         @PathVariable id: Long,
         @RequestPart dto: PostRequestDto
     ): Post {
         return postService.update(id, dto)
-    }
-
-    @PostMapping
-    suspend fun insert(@RequestPart("dto") dto: PostRequestDto): Post {
-        return postService.insert(dto)
     }
 }

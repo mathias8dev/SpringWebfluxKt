@@ -23,6 +23,9 @@ val coroutinesVersion by extra("1.9.0")
 
 dependencies {
 
+    // Swagger
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0")
+
     //implementation("io.r2dbc:r2dbc-postgresql:0.8.13.RELEASE")
     implementation("io.r2dbc:r2dbc-pool:1.0.2.RELEASE")
     implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")

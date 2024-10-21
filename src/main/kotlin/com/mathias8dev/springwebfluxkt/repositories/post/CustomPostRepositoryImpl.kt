@@ -32,6 +32,11 @@ class CustomPostRepositoryImpl(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    /**
+     * Retrieves all posts along with their associated categories and comments.
+     *
+     * @return a [Flow] of [PostResponseDto] containing the posts with their categories and comments.
+     */
     override suspend fun findAllPostWithCategoriesAndComments(): Flow<PostResponseDto> {
         return client.sql(
             """
@@ -51,6 +56,12 @@ class CustomPostRepositoryImpl(
             .asFlow()
     }
 
+    /**
+     * Adds a category to a post by inserting a record into the `posts_categories` table.
+     *
+     * @param postId the ID of the post to which the category will be added.
+     * @param categoryId the ID of the category to be added to the post.
+     */
     override suspend fun addCategory(postId: Long, categoryId: Long) {
         val query = """
             INSERT INTO posts_categories (post_id, category_id) 
@@ -75,6 +86,16 @@ class CustomPostRepositoryImpl(
         )
     }
 
+
+    /**
+     * Retrieves a paginated list of posts with their associated categories and comments.
+     *
+     * @param pageable the pagination information including page number, size, and sorting options.
+     * @param filterCriteria the list of filter criteria to apply to the query.
+     * @param filterMode the mode to apply the filters (e.g., AND, OR).
+     * @return a [Page] of [PostResponseDto] containing the paginated posts with their categories and comments.
+     * @throws Exception if any error occurs during the database operations.
+     */
     override suspend fun findAll(
         pageable: Pageable,
         filterCriteria: List<FilterCriteria>,
@@ -183,6 +204,13 @@ class CustomPostRepositoryImpl(
         PageImpl(content, pageable, totalAsync.await())
     }
 
+    /**
+     * Inserts a new post into the `posts` table.
+     *
+     * @param post the [Post] object containing the details of the post to be inserted.
+     * @return the inserted [Post] object with the generated ID and other details.
+     * @throws Exception if any error occurs during the database operation.
+     */
     override suspend fun insert(post: Post): Post {
         val query = """
         INSERT INTO posts (title, content, tags, created_at, updated_at) 

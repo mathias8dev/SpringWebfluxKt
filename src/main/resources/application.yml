@@ -33,6 +33,14 @@ server:
     include-binding-errors: always
     include-stacktrace: always
   port: 8080
+  shutdown: graceful
 logging:
   level:
+    io.r2dbc.postgresql.QUERY: INFO
     com.mathias8dev: TRACE
+
+
+#springdoc: http://localhost:8080/webjars/swagger-ui/index.html#/
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

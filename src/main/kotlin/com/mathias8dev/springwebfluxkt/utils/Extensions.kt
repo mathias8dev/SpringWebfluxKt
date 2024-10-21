@@ -68,3 +68,7 @@ fun String.toTyped(): Any {
 fun String.toFilterMode(): FilterMode {
     return FilterMode.valueOf(this.uppercase(Locale.getDefault()))
 }
+
+infix fun Any?.unless(condition: Boolean): Any? {
+    return if (condition) this else null
+}
