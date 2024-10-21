@@ -1,0 +1,102 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: mathias8dev
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      preConditions:
+        - tableExists:
+            tableName: users
+        - tableExists:
+            tableName: posts
+        - tableExists:
+            tableName: comments
+
+
+      changes:
+
+        # Add author_id column to posts and comments tables
+        - addColumn:
+            tableName: posts
+            columns:
+              - column:
+                  name: author_id
+                  type: BIGINT
+                  defaultValue: '1'
+                  constraints:
+                    nullable: true
+
+        # Update rows where author_id is NULL and set it to 1
+        - update:
+            tableName: posts
+            columns:
+              - column:
+                  name: author_id
+                  value: 1
+            where: "author_id IS NULL"
+
+        # Now alter the column to make it NOT NULL
+        - modifyDataType:
+            tableName: posts
+            columnName: author_id
+            newDataType: BIGINT
+
+        # Add not-nullable constraint for author_id
+        - addNotNullConstraint:
+            tableName: posts
+            columnName: author_id
+
+        - addColumn:
+            tableName: comments
+            columns:
+              - column:
+                  name: author_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+
+
+        # Update rows where author_id is NULL and set it to 1
+        - update:
+            tableName: comments
+            columns:
+              - column:
+                  name: author_id
+                  value: 1
+            where: "author_id IS NULL"
+
+        # Now alter the column to make it NOT NULL
+        - modifyDataType:
+            tableName: comments
+            columnName: author_id
+            newDataType: BIGINT
+
+        # Add not-nullable constraint for author_id
+        - addNotNullConstraint:
+            tableName: comments
+            columnName: author_id
+
+
+
+        # Add unique constraint on username
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: username
+            constraintName: uq_users_username
+
+        # Add foreign key constraint between users and posts (one-to-many relationship)
+        - addForeignKeyConstraint:
+            baseTableName: posts
+            baseColumnNames: author_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_posts_users
+
+
+        # Add foreign key constraint between users and comments (one-to-many relationship)
+        - addForeignKeyConstraint:
+            baseTableName: comments
+            baseColumnNames: author_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_comments_users
+
