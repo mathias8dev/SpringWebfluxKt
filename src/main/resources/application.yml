@@ -3,4 +3,36 @@ spring:
   application:
     name: SpringWebfluxKt
 
+  sql:
+    init:
+      mode: always
 
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/webfluxkt_db
+    username: postgres
+    password: postgres
+
+  data:
+    r2dbc:
+      repositories:
+        enabled: true
+
+
+  liquibase:
+    url: jdbc:postgresql://localhost:5432/webfluxkt_db
+    user: postgres
+    password: postgres
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+
+server:
+  error:
+    include-message: always
+    include-exception: true
+    include-binding-errors: always
+    include-stacktrace: always
+  port: 8080
+logging:
+  level:
+    com.mathias8dev: TRACE
