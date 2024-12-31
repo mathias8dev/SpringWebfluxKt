@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  dev-webfluxblog-blog-service: # The name of the service
+    container_name: dev-webfluxblog-blog-service  # Setting the container name
+    image: dev-webfluxblog-blog-service-local-image
+    restart: always # Always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8088:8088" # Map The current port
+    networks:
+      - dev-webfluxblog-network-overlay
+    volumes:
+      - dev-webfluxblog-blog-service-local-volume:/uploads
+      - /root/logs:/usr/app/logs
+    environment:
+      spring.profiles.active: dev
+
+
+networks:
+  dev-webfluxblog-network-overlay:
+    external: true
+
+volumes:
+  dev-webfluxblog-blog-service-local-volume:
+    name: dev-webfluxblog-blog-service-local-volume
+
+# To build, docker-compose up --build -d or generally ./gradlew bootJar && docker-compose up --build -d

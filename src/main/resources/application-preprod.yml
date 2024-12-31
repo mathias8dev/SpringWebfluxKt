@@ -1,0 +1,68 @@
+debug: true
+spring:
+  application:
+    name: blog-service
+
+
+  r2dbc:
+    url: r2dbc:postgresql://preprod-webfluxblog-postgresqlserver:5432/webfluxkt_db
+    username: postgres
+    password: postgres
+
+  data:
+    r2dbc:
+      repositories:
+        enabled: true
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://preprod-webfluxblog-authorization-server-service:8111/oauth2/jwks
+          issuer-uri: http://preprod-webfluxblog-authorization-server-service:8111
+
+
+  liquibase:
+    url: jdbc:postgresql://preprod-webfluxblog-postgresqlserver:5432/webfluxkt_db
+    user: postgres
+    password: postgres
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+
+server:
+  error:
+    include-message: always
+    include-exception: true
+    include-binding-errors: always
+    include-stacktrace: always
+  port: 8087
+  shutdown: graceful
+logging:
+  level:
+    io.r2dbc.postgresql.QUERY: INFO
+    com.mathias8dev: TRACE
+
+
+#springdoc: http://localhost:8080/webjars/swagger-ui/index.html#/
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+webfluxblog:
+  gateway:
+    baseurl: http://preprod-webfluxblog-gateway-service:8081
+    api-url: http://preprod-webfluxblog-gateway-service:8081/api
+
+#Eureka client
+# Eureka client
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://preprod-webfluxblog-eureka-server-service:8084/eureka
+  instance:
+    hostname: dev-webfluxblog-eureka-server-service
+    prefer-ip-address: true

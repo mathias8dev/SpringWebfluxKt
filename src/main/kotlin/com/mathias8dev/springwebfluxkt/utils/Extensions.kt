@@ -35,6 +35,10 @@ inline fun <reified T, reified V> T.toTypedData(): V {
     return this.toJson().fromJson()
 }
 
+inline fun <reified T, reified V> T.convert(): V {
+    return this.toJson().fromJson()
+}
+
 fun String.toSort(): Sort {
     this.split(",").map {
         val (key, direction) = it.split(":")
